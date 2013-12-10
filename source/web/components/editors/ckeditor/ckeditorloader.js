@@ -92,6 +92,14 @@
          mimeType: null,
          
          /**
+          * The identified mimetype of the content/property
+          * 
+          * @property contentMimetype
+          * @type string
+          */
+         contentMimetype: null,
+         
+         /**
           * Comma separated list of mime types that will be shown
           * in a textarea
           * 
@@ -161,12 +169,12 @@
                   YAHOO.lang.dump(this.options.editorParameters));
          }
                   
-         // get the mimetype of the content
-         var contentMimetype = this._determineMimeType();
+         // get the mimetype of the content         
+                this.contentMimetype = this._determineMimeType();
             
-         if (contentMimetype !== null)
+         if (this.contentMimetype !== null)
          {
-            if (this._isRichMimeType(contentMimetype))
+            if (this._isRichMimeType(this.contentMimetype))
             {
                if (this.options.formMode === "create")
                {
@@ -176,6 +184,11 @@
                      this._renderEditor();
                      //Alfresco.logger.debug("Editor rendered");
                   }
+               }
+               else if (this.options.fieldName !== "cm:content")
+               {
+                     this._renderEditor();
+                     Dom.get(this.id).value = this.options.currentValue;
                }
                else
                {
@@ -200,12 +213,12 @@
                   });
                }
             }
-            else if (this._isPlainMimeType(contentMimetype) || this.options.forceEditor)
+            else if (this._isPlainMimeType(this.contentMimetype) || this.options.forceEditor)
             {
                // populate the textarea with the content
                this._populateContent();
             }
-            else if (this._isImageMimeType(contentMimetype))
+            else if (this._isImageMimeType(this.contentMimetype))
             {
                this._hideField();
                
@@ -430,30 +443,30 @@
        * Render the CKEditor
        */
       _renderEditor: function CKEditorContentControl_RenderEditor(){
-    	  		
-    	  		var editor = CKEDITOR.replace(this.id,
-    	  			{
-    	  				customConfig : Alfresco.constants.URL_RESCONTEXT+this.options.settingsfile
-    	  			});
-    	  
-    	  		/**
-    	  		 * These events to handle update is from
-    	  		 * http://alfonsoml.blogspot.com/2011/03/onchange-event-for-ckeditor.html
-    	  		 * Slightly changed to fit this purpose
-    	  		 */
-    	  		editor.timer=0
+                              
+                              var editor = CKEDITOR.replace(this.id,
+                                      {
+                                              customConfig : Alfresco.constants.URL_RESCONTEXT+this.options.settingsfile
+                                      });
+              
+                              /**
+                               * These events to handle update is from
+                               * http://alfonsoml.blogspot.com/2011/03/onchange-event-for-ckeditor.html
+                               * Slightly changed to fit this purpose
+                               */
+                              editor.timer=0
 
-    	  		editor.on( 'saveSnapshot', function(e) { CKEditor_updateElement(e); });
-    	  		editor.on( 'afterUndoImage', function(e) { CKEditor_updateElement(e);  } );
-    	  		editor.on( 'blur', function(e) { CKEditor_updateElement(e);  } );
+                              editor.on( 'saveSnapshot', function(e) { CKEditor_updateElement(e); });
+                              editor.on( 'afterUndoImage', function(e) { CKEditor_updateElement(e);  } );
+                              editor.on( 'blur', function(e) { CKEditor_updateElement(e);  } );
 
-    	  		editor.on( 'afterCommandExec', function(e)
-    	  		{
-    	  		    if ( e.data.command.canUndo !== false ){
-    	  		    	CKEditor_updateElement(e);
-    	  		    }	
-    	  		} );
-    	  		editor.on( 'key', function(e) { CKEditor_updateElement(e);  } );
+                              editor.on( 'afterCommandExec', function(e)
+                              {
+                                  if ( e.data.command.canUndo !== false ){
+                                          CKEditor_updateElement(e);
+                                  }        
+                              } );
+                              editor.on( 'key', function(e) { CKEditor_updateElement(e);  } );
 
       }
    });
@@ -461,19 +474,19 @@
 
 function CKEditor_updateElement(e){
     //Use timer function so it not fire to often
-	//Alfresco.logger.debug("UPDATE called by "+e.name);
+        //Alfresco.logger.debug("UPDATE called by "+e.name);
   
-  	if (e.editor.timer){
-  		//Alfresco.logger.debug("UPDATE called, timer, exiting");
+          if (e.editor.timer){
+                  //Alfresco.logger.debug("UPDATE called, timer, exiting");
         return;
-  	}
+          }
  
-  	e.editor.timer = setTimeout( function() {
-  		e.editor.timer = 0;
-       	if(e.editor.checkDirty()){
-       		//Alfresco.logger.debug("UPDATE called, isDirty, updating");
-       		e.editor.updateElement();
-       		e.editor.resetDirty();
-       	}
+          e.editor.timer = setTimeout( function() {
+                  e.editor.timer = 0;
+               if(e.editor.checkDirty()){
+                       //Alfresco.logger.debug("UPDATE called, isDirty, updating");
+                       e.editor.updateElement();
+                       e.editor.resetDirty();
+               }
     }, 100);
 }
